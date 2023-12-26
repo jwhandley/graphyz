@@ -6,7 +6,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"strconv"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -170,7 +169,8 @@ func main() {
 					node.isSelected = true
 					anySelected = true
 				}
-				message := node.Name + ", Group " + strconv.Itoa(node.Group) + "\n Degree: " + strconv.Itoa(node.degree)
+				//message := node.Name + ", Group " + strconv.Itoa(node.Group) + "\n Degree: " + strconv.Itoa(node.degree)
+				message := fmt.Sprintf("%s, Group: %d\nDegree: %d", node.Name, node.Group, node.degree)
 				rl.DrawText(message, int32(node.pos.X)+5, int32(node.pos.Y), 20, rl.Black)
 				rl.DrawCircleV(node.pos, radius, rl.NewColor(80, 80, 80, 150))
 			}
