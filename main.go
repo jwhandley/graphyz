@@ -82,7 +82,6 @@ func (graph *Graph) applyForce(deltaTime float32) {
 
 	for _, node := range graph.Nodes {
 		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
-		//node.pos = rl.Vector2Clamp(node.pos, rl.Vector2{X: -screenWidth, Y: -screenHeight}, rl.Vector2{X: screenWidth * 2, Y: screenHeight * 2})
 	}
 }
 
