@@ -19,25 +19,25 @@ const (
 type Graph struct {
 	Nodes       []*Node `json:"nodes"`
 	Edges       []*Edge `json:"links"`
-	TotalDegree int
+	TotalDegree float32
 }
 
 type Node struct {
 	Name       string `json:"name"`
 	Group      int    `json:"group"`
-	degree     int
+	degree     float32
 	isSelected bool
 	pos        rl.Vector2
 	vel        rl.Vector2
 }
 
 type Edge struct {
-	Source int `json:"source"`
-	Target int `json:"target"`
-	Value  int `json:"value"`
+	Source int     `json:"source"`
+	Target int     `json:"target"`
+	Value  float32 `json:"value"`
 }
 
-func (graph *Graph) applyForce(deltaTime float32, k float32) {
+func (graph *Graph) applyForce(deltaTime float32) {
 	center := rl.Vector2{
 		X: screenWidth / 2,
 		Y: screenHeight / 2,
@@ -45,7 +45,6 @@ func (graph *Graph) applyForce(deltaTime float32, k float32) {
 	for _, node := range graph.Nodes {
 		delta := rl.Vector2Subtract(center, node.pos)
 		node.vel = rl.Vector2Scale(delta, 0.1)
-		node.vel = rl.Vector2Zero()
 	}
 
 	for i, node := range graph.Nodes {
@@ -83,7 +82,7 @@ func (graph *Graph) applyForce(deltaTime float32, k float32) {
 
 	for _, node := range graph.Nodes {
 		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
-		node.pos = rl.Vector2Clamp(node.pos, rl.Vector2{X: -screenWidth, Y: -screenHeight}, rl.Vector2{X: screenWidth * 2, Y: screenHeight * 2})
+		//node.pos = rl.Vector2Clamp(node.pos, rl.Vector2{X: -screenWidth, Y: -screenHeight}, rl.Vector2{X: screenWidth * 2, Y: screenHeight * 2})
 	}
 }
 
@@ -114,7 +113,6 @@ func main() {
 		graph.Nodes[edge.Target].degree += edge.Value
 		graph.TotalDegree += edge.Value
 	}
-	k := float32(math.Sqrt(float64(screenWidth * screenHeight / graph.TotalDegree)))
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
 	rl.InitWindow(screenWidth, screenHeight, "graphyz")
@@ -145,7 +143,7 @@ func main() {
 			}
 		}
 
-		graph.applyForce(rl.GetFrameTime(), k)
+		graph.applyForce(rl.GetFrameTime())
 		mousePos := rl.GetMousePosition()
 		mousePos.X = (mousePos.X-camera.Offset.X)/camera.Zoom + camera.Target.X
 		mousePos.Y = (mousePos.Y-camera.Offset.Y)/camera.Zoom + camera.Target.Y
@@ -169,8 +167,7 @@ func main() {
 					node.isSelected = true
 					anySelected = true
 				}
-				//message := node.Name + ", Group " + strconv.Itoa(node.Group) + "\n Degree: " + strconv.Itoa(node.degree)
-				message := fmt.Sprintf("%s, Group: %d\nDegree: %d", node.Name, node.Group, node.degree)
+				message := fmt.Sprintf("%s, Group: %d\nDegree: %f", node.Name, node.Group, node.degree)
 				rl.DrawText(message, int32(node.pos.X)+5, int32(node.pos.Y), 20, rl.Black)
 				rl.DrawCircleV(node.pos, radius, rl.NewColor(80, 80, 80, 150))
 			}
