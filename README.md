@@ -5,7 +5,7 @@ Work in progress.
 
 ## Example
 
-https://github.com/jwhandley/graphyz/examples/graphyz-example.webm
+![](./examples/graphyz-example.webm)
 
 ## References
 - Force-directed graph layouts: https://en.wikipedia.org/wiki/Force-directed_graph_drawing
