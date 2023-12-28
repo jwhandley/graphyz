@@ -87,7 +87,6 @@ func (qt *QuadTree) CalculateMasses() {
 		}
 		qt.Center.X /= qt.TotalMass
 		qt.Center.Y /= qt.TotalMass
-		//fmt.Println(qt.Region, qt.Center, qt.TotalMass)
 	} else {
 		// Process children
 		for _, child := range qt.Children {
@@ -98,7 +97,6 @@ func (qt *QuadTree) CalculateMasses() {
 		}
 		qt.Center.X /= qt.TotalMass
 		qt.Center.Y /= qt.TotalMass
-		//fmt.Println(qt.Region, qt.Center, qt.TotalMass)
 	}
 }
 
