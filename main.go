@@ -11,6 +11,8 @@ import (
 const (
 	screenWidth  = 800
 	screenHeight = 600
+	barnesHut    = true
+	gravity      = true
 )
 
 func main() {

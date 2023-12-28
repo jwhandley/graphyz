@@ -31,40 +31,51 @@ type Edge struct {
 }
 
 func (graph *Graph) applyForce(deltaTime float32) {
-	center := rl.Vector2{
-		X: screenWidth / 2,
-		Y: screenHeight / 2,
-	}
-	for _, node := range graph.Nodes {
-		delta := rl.Vector2Subtract(center, node.pos)
-		node.vel = rl.Vector2Scale(delta, 0.1)
-		//node.vel = rl.Vector2Zero()
+	if gravity {
+		center := rl.Vector2{
+			X: screenWidth / 2,
+			Y: screenHeight / 2,
+		}
+		for _, node := range graph.Nodes {
+			delta := rl.Vector2Subtract(center, node.pos)
+			node.vel = rl.Vector2Scale(delta, 0.1)
+		}
+	} else {
+		for _, node := range graph.Nodes {
+			node.vel = rl.Vector2Zero()
+		}
 	}
 
-	rect := Rect{-screenWidth, -screenHeight, 2 * screenWidth, 2 * screenHeight}
-	qt := NewQuadTree(rect)
-	for _, node := range graph.Nodes {
-		qt.Insert(node)
-	}
-	qt.CalculateMasses()
+	if barnesHut {
+		rect := Rect{-screenWidth, -screenHeight, 2 * screenWidth, 2 * screenHeight}
+		qt := NewQuadTree(rect)
+		for _, node := range graph.Nodes {
+			qt.Insert(node)
+		}
+		qt.CalculateMasses()
+		for _, node := range graph.Nodes {
+			force := qt.CalculateForce(node, 0.5)
+			node.vel = rl.Vector2Add(node.vel, force)
+		}
+	} else {
+		for i, node := range graph.Nodes {
 
-	for _, node := range graph.Nodes {
-		// for j, other := range graph.Nodes {
-		// 	if i == j {
-		// 		continue
-		// 	}
+			for j, other := range graph.Nodes {
+				if i == j {
+					continue
+				}
 
-		// 	delta := rl.Vector2Subtract(node.pos, other.pos)
-		// 	dist := rl.Vector2LengthSqr(delta)
-		// 	if dist < 1e-2 {
-		// 		continue
-		// 	}
-		// 	scale := float32(node.degree * other.degree)
-		// 	dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
-		// 	node.vel = rl.Vector2Add(node.vel, dv)
-		// }
-		force := qt.CalculateForce(node, 0.5)
-		node.vel = rl.Vector2Add(node.vel, force)
+				delta := rl.Vector2Subtract(node.pos, other.pos)
+				dist := rl.Vector2LengthSqr(delta)
+				if dist < 1e-2 {
+					continue
+				}
+				scale := float32(node.degree * other.degree)
+				dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+				node.vel = rl.Vector2Add(node.vel, dv)
+			}
+
+		}
 	}
 
 	for _, edge := range graph.Edges {
