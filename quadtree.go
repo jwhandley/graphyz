@@ -1,23 +1,130 @@
 package main
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
-type Quadtree struct {
+const Capacity = 10
+
+type QuadTree struct {
 	Center    rl.Vector2
 	TotalMass float32
 	Region    Rect
-	Nodes     []Node
-	Children  [4]*Quadtree
+	Nodes     []*Node
+	Children  [4]*QuadTree
 }
 
 type Rect struct {
 	X, Y, Width, Height float32
 }
 
-func NewQuadTree(boundary Rect) *Quadtree {
-	qt := new(Quadtree)
+func (r *Rect) Contains(pos rl.Vector2) bool {
+	contains := pos.X >= r.X && pos.X <= r.X+r.Width && pos.Y >= r.Y && pos.Y <= r.Y+r.Height
+	return contains
+}
+
+func NewQuadTree(boundary Rect) *QuadTree {
+	qt := new(QuadTree)
 	qt.Region = boundary
-	qt.Nodes = make([]Node, 0)
+	qt.Nodes = make([]*Node, 0)
+	qt.Children = [4]*QuadTree{nil, nil, nil, nil}
+	qt.Center = rl.Vector2{X: 0, Y: 0}
+	qt.TotalMass = 0
 
 	return qt
+}
+
+func (qt *QuadTree) Insert(node *Node) bool {
+	if !qt.Region.Contains(node.pos) {
+		return false
+	}
+
+	if len(qt.Nodes) < Capacity {
+		if len(qt.Nodes) == 0 {
+			qt.Center = node.pos
+		} else {
+			qt.Center.X = (qt.Center.X*qt.TotalMass + node.pos.X*node.degree) / (qt.TotalMass + node.degree)
+			qt.Center.Y = (qt.Center.Y*qt.TotalMass + node.pos.Y*node.degree) / (qt.TotalMass + node.degree)
+		}
+		qt.TotalMass += node.degree
+		qt.Nodes = append(qt.Nodes, node)
+		return true
+	} else {
+		if qt.Children[0] == nil {
+			qt.Subdivide()
+		}
+		for _, child := range qt.Children {
+
+			if child.Insert(node) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (qt *QuadTree) Subdivide() {
+	midX := qt.Region.X + qt.Region.Width/2
+	midY := qt.Region.Y + qt.Region.Height/2
+
+	halfWidth := (qt.Region.Width) / 2
+	halfHeight := (qt.Region.Height) / 2
+
+	qt.Children[0] = NewQuadTree(Rect{X: qt.Region.X, Y: qt.Region.Y, Width: halfWidth, Height: halfHeight}) // Top Left
+	qt.Children[1] = NewQuadTree(Rect{X: midX, Y: qt.Region.Y, Width: halfWidth, Height: halfHeight})        // Top right
+	qt.Children[2] = NewQuadTree(Rect{X: qt.Region.X, Y: midY, Width: halfWidth, Height: halfHeight})        // Bottom Left
+	qt.Children[3] = NewQuadTree(Rect{X: midX, Y: midY, Width: halfWidth, Height: halfHeight})               // Bottom Right
+
+	for _, node := range qt.Nodes {
+		for _, child := range qt.Children {
+			if child.Region.Contains(node.pos) {
+				child.Insert(node)
+				break
+			}
+		}
+	}
+	qt.Nodes = nil
+}
+
+func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
+	if qt.Children[0] == nil {
+		// Handle leaf node
+		totalForce := rl.Vector2Zero()
+		for _, other := range qt.Nodes {
+			delta := rl.Vector2Subtract(node.pos, other.pos)
+			dist := rl.Vector2LengthSqr(delta)
+			if dist < 1e-5 {
+				continue
+			}
+			scale := float32(node.degree * other.degree)
+			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+			totalForce = rl.Vector2Add(totalForce, dv)
+		}
+		return totalForce
+	} else if len(qt.Nodes) > 0 {
+		d := rl.Vector2Distance(node.pos, qt.Center)
+		s := qt.Region.Width
+
+		if (s / d) < theta {
+			// Treat as a single body
+			delta := rl.Vector2Subtract(node.pos, qt.Center)
+			dist := rl.Vector2LengthSqr(delta)
+			if dist < 1e-5 {
+				return rl.Vector2Zero()
+			}
+
+			scale := float32(node.degree * qt.TotalMass)
+			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+			return dv
+		} else {
+			totalForce := rl.Vector2Zero()
+			for _, child := range qt.Children {
+				if child != nil {
+					totalForce = rl.Vector2Add(totalForce, child.CalculateForce(node, theta))
+				}
+			}
+			return totalForce
+		}
+	}
+	return rl.Vector2Zero()
 }

@@ -90,7 +90,7 @@ func main() {
 		rl.EndMode2D()
 		rl.DrawFPS(10, 10)
 		zoomMessage := fmt.Sprintf("Zoom: %.2f", camera.Zoom)
-		rl.DrawText(zoomMessage, screenWidth-100, 10, 20, rl.Black)
+		rl.DrawText(zoomMessage, screenWidth-110, 10, 20, rl.Black)
 		rl.EndDrawing()
 	}
 

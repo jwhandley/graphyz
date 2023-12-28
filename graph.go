@@ -38,7 +38,14 @@ func (graph *Graph) applyForce(deltaTime float32) {
 	for _, node := range graph.Nodes {
 		delta := rl.Vector2Subtract(center, node.pos)
 		node.vel = rl.Vector2Scale(delta, 0.1)
+		//node.vel = rl.Vector2Zero()
 	}
+
+	// rect := Rect{-screenWidth, -screenHeight, 2 * screenWidth, 2 * screenHeight}
+	// qt := NewQuadTree(rect)
+	// for _, node := range graph.Nodes {
+	// 	qt.Insert(node)
+	// }
 
 	for i, node := range graph.Nodes {
 		for j, other := range graph.Nodes {
@@ -75,6 +82,7 @@ func (graph *Graph) applyForce(deltaTime float32) {
 
 	for _, node := range graph.Nodes {
 		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
+		node.pos = rl.Vector2Clamp(node.pos, rl.Vector2Zero(), rl.Vector2{X: screenWidth, Y: screenHeight})
 	}
 }
 
