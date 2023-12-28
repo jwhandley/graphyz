@@ -40,13 +40,6 @@ func (qt *QuadTree) Insert(node *Node) bool {
 	}
 
 	if len(qt.Nodes) < Capacity {
-		if len(qt.Nodes) == 0 {
-			qt.Center = node.pos
-		} else {
-			qt.Center.X = (qt.Center.X*qt.TotalMass + node.pos.X*node.degree) / (qt.TotalMass + node.degree)
-			qt.Center.Y = (qt.Center.Y*qt.TotalMass + node.pos.Y*node.degree) / (qt.TotalMass + node.degree)
-		}
-		qt.TotalMass += node.degree
 		qt.Nodes = append(qt.Nodes, node)
 		return true
 	} else {
@@ -54,7 +47,6 @@ func (qt *QuadTree) Insert(node *Node) bool {
 			qt.Subdivide()
 		}
 		for _, child := range qt.Children {
-
 			if child.Insert(node) {
 				return true
 			}
@@ -83,12 +75,35 @@ func (qt *QuadTree) Subdivide() {
 			}
 		}
 	}
-	qt.Nodes = nil
+}
+
+func (qt *QuadTree) CalculateMasses() {
+	if qt.Children[0] == nil {
+		// Leaf
+		for _, node := range qt.Nodes {
+			qt.TotalMass += node.degree
+			qt.Center.X += node.pos.X * node.degree
+			qt.Center.Y += node.pos.Y * node.degree
+		}
+		qt.Center.X /= qt.TotalMass
+		qt.Center.Y /= qt.TotalMass
+		//fmt.Println(qt.Region, qt.Center, qt.TotalMass)
+	} else {
+		// Process children
+		for _, child := range qt.Children {
+			child.CalculateMasses()
+			qt.TotalMass += child.TotalMass
+			qt.Center.X += child.Center.X * child.TotalMass
+			qt.Center.Y += child.Center.Y * child.TotalMass
+		}
+		qt.Center.X /= qt.TotalMass
+		qt.Center.Y /= qt.TotalMass
+		//fmt.Println(qt.Region, qt.Center, qt.TotalMass)
+	}
 }
 
 func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
-	if qt.Children[0] == nil {
-		// Handle leaf node
+	if qt.Children[0] == nil && len(qt.Nodes) > 0 {
 		totalForce := rl.Vector2Zero()
 		for _, other := range qt.Nodes {
 			delta := rl.Vector2Subtract(node.pos, other.pos)
@@ -104,9 +119,7 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 	} else if len(qt.Nodes) > 0 {
 		d := rl.Vector2Distance(node.pos, qt.Center)
 		s := qt.Region.Width
-
 		if (s / d) < theta {
-			// Treat as a single body
 			delta := rl.Vector2Subtract(node.pos, qt.Center)
 			dist := rl.Vector2LengthSqr(delta)
 			if dist < 1e-5 {
@@ -126,5 +139,6 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 			return totalForce
 		}
 	}
+
 	return rl.Vector2Zero()
 }

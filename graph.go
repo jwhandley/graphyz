@@ -41,27 +41,30 @@ func (graph *Graph) applyForce(deltaTime float32) {
 		//node.vel = rl.Vector2Zero()
 	}
 
-	// rect := Rect{-screenWidth, -screenHeight, 2 * screenWidth, 2 * screenHeight}
-	// qt := NewQuadTree(rect)
-	// for _, node := range graph.Nodes {
-	// 	qt.Insert(node)
-	// }
+	rect := Rect{-screenWidth, -screenHeight, 2 * screenWidth, 2 * screenHeight}
+	qt := NewQuadTree(rect)
+	for _, node := range graph.Nodes {
+		qt.Insert(node)
+	}
+	qt.CalculateMasses()
 
-	for i, node := range graph.Nodes {
-		for j, other := range graph.Nodes {
-			if i == j {
-				continue
-			}
+	for _, node := range graph.Nodes {
+		// for j, other := range graph.Nodes {
+		// 	if i == j {
+		// 		continue
+		// 	}
 
-			delta := rl.Vector2Subtract(node.pos, other.pos)
-			dist := rl.Vector2LengthSqr(delta)
-			if dist < 1e-2 {
-				continue
-			}
-			scale := float32(node.degree * other.degree)
-			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
-			node.vel = rl.Vector2Add(node.vel, dv)
-		}
+		// 	delta := rl.Vector2Subtract(node.pos, other.pos)
+		// 	dist := rl.Vector2LengthSqr(delta)
+		// 	if dist < 1e-2 {
+		// 		continue
+		// 	}
+		// 	scale := float32(node.degree * other.degree)
+		// 	dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+		// 	node.vel = rl.Vector2Add(node.vel, dv)
+		// }
+		force := qt.CalculateForce(node, 0.5)
+		node.vel = rl.Vector2Add(node.vel, force)
 	}
 
 	for _, edge := range graph.Edges {
