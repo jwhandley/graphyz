@@ -4,7 +4,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-const Capacity = 10
+const Capacity = 20
 
 type QuadTree struct {
 	Center    rl.Vector2
@@ -106,7 +106,7 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 		for _, other := range qt.Nodes {
 			delta := rl.Vector2Subtract(node.pos, other.pos)
 			dist := rl.Vector2LengthSqr(delta)
-			if dist < 1e-5 {
+			if dist < 1e-2 {
 				continue
 			}
 			scale := float32(node.degree * other.degree)
@@ -120,7 +120,7 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 		if (s / d) < theta {
 			delta := rl.Vector2Subtract(node.pos, qt.Center)
 			dist := rl.Vector2LengthSqr(delta)
-			if dist < 1e-5 {
+			if dist < 1e-2 {
 				return rl.Vector2Zero()
 			}
 

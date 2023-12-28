@@ -87,8 +87,8 @@ func (graph *Graph) applyForce(deltaTime float32) {
 		if dist < 1e-2 {
 			continue
 		}
-		l := float32(5.0)
 		s := float32(math.Min(float64(from.degree), float64(to.degree)))
+		l := float32(math.Sqrt(float64(from.degree * to.degree)))
 		dv := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
 		from.vel = rl.Vector2Subtract(from.vel, dv)
 		to.vel = rl.Vector2Add(to.vel, dv)
@@ -96,7 +96,6 @@ func (graph *Graph) applyForce(deltaTime float32) {
 
 	for _, node := range graph.Nodes {
 		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
-		node.pos = rl.Vector2Clamp(node.pos, rl.Vector2Zero(), rl.Vector2{X: screenWidth, Y: screenHeight})
 	}
 }
 
