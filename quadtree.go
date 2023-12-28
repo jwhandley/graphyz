@@ -103,7 +103,7 @@ func (qt *QuadTree) CalculateMasses() {
 }
 
 func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
-	if qt.Children[0] == nil && len(qt.Nodes) > 0 {
+	if qt.Children[0] == nil {
 		totalForce := rl.Vector2Zero()
 		for _, other := range qt.Nodes {
 			delta := rl.Vector2Subtract(node.pos, other.pos)
@@ -116,7 +116,7 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 			totalForce = rl.Vector2Add(totalForce, dv)
 		}
 		return totalForce
-	} else if len(qt.Nodes) > 0 {
+	} else {
 		d := rl.Vector2Distance(node.pos, qt.Center)
 		s := qt.Region.Width
 		if (s / d) < theta {
@@ -139,6 +139,4 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 			return totalForce
 		}
 	}
-
-	return rl.Vector2Zero()
 }
