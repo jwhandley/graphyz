@@ -84,18 +84,20 @@ func (graph *Graph) applyForce(deltaTime float32) {
 		delta := rl.Vector2Subtract(from.pos, to.pos)
 		dist := rl.Vector2Length(delta)
 
-		if dist < 1e-2 {
+		if dist < 1e-1 {
 			continue
 		}
 		s := float32(math.Min(float64(from.degree), float64(to.degree)))
-		l := float32(math.Sqrt(float64(from.degree * to.degree)))
+		l := float32(5)
 		dv := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
 		from.vel = rl.Vector2Subtract(from.vel, dv)
 		to.vel = rl.Vector2Add(to.vel, dv)
 	}
 
 	for _, node := range graph.Nodes {
+		node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
 		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
+		node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*screenWidth, -10*screenHeight), rl.NewVector2(10*screenWidth, 10*screenHeight))
 	}
 }
 
@@ -123,6 +125,10 @@ func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 		}
 	}
 	for _, edge := range graph.Edges {
+		if edge.Value == 0.0 {
+			edge.Value = 1.0
+		}
+
 		graph.Nodes[edge.Source].degree += edge.Value
 		graph.Nodes[edge.Target].degree += edge.Value
 		graph.TotalDegree += edge.Value

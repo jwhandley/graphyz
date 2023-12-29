@@ -11,12 +11,13 @@ import (
 const (
 	screenWidth  = 1200
 	screenHeight = 800
+	temperature  = 10.0
 	barnesHut    = true
 	gravity      = true
 )
 
 func main() {
-	graph, colorMap, err := ImportFromJson("assets/les-mis.json")
+	graph, colorMap, err := ImportFromJson("assets/gove-rvs-materials/gove-rvs-materials/json/artificial/b_a_1000_4.json")
 	if err != nil {
 		panic(err)
 	}
@@ -65,6 +66,7 @@ func main() {
 			thickness := float32(math.Sqrt(float64(edge.Value)))
 			rl.DrawLineEx(sourcePos, targetPos, thickness, rl.LightGray)
 		}
+
 		for _, node := range graph.Nodes {
 			dist := rl.Vector2Distance(mousePos, node.pos)
 			radius := float32(math.Max(math.Sqrt(float64(node.degree)), 2))
