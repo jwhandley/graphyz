@@ -16,5 +16,6 @@ Work in progress.
 - Fruchterman-Reingold paper: https://www.mathe2.uni-bayreuth.de/axel/papers/reingold:graph_drawing_by_force_directed_placement.pdf
 
 ## To-do
+- Use GPU instancing to speed up rendering for large graphs
 - Allow users to use their own graph data
 - Add support for additional graph serialization formats
