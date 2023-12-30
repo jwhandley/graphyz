@@ -12,7 +12,7 @@ const (
 	screenWidth  = 1200
 	screenHeight = 800
 	alphaTarget  = 1.0
-	alphaDecay   = 0.05
+	alphaDecay   = 0.01
 	alphaInit    = float32(20.0)
 	barnesHut    = true
 	gravity      = true
