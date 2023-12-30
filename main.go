@@ -11,21 +11,26 @@ import (
 const (
 	screenWidth  = 1200
 	screenHeight = 800
-	temperature  = 10.0
+	alphaTarget  = 1.0
+	alphaDecay   = 0.05
+	alphaInit    = float32(20.0)
 	barnesHut    = true
 	gravity      = true
 )
 
 func main() {
-	graph, colorMap, err := ImportFromJson("assets/gove-rvs-materials/gove-rvs-materials/json/artificial/b_a_1000_4.json")
+	graph, colorMap, err := ImportFromJson("assets/gove-rvs-materials/gove-rvs-materials/json/benchmark/block_2000.json")
 	if err != nil {
 		panic(err)
 	}
+
+	temperature := alphaInit
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
 	rl.InitWindow(screenWidth, screenHeight, "graphyz")
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(60)
+
 	camera := new(rl.Camera2D)
 	camera.Target = rl.Vector2{X: screenWidth / 2, Y: screenHeight / 2}
 	camera.Offset = rl.Vector2{X: screenWidth / 2, Y: screenHeight / 2}
@@ -42,6 +47,7 @@ func main() {
 		}
 
 		if rl.IsKeyPressed(rl.KeyR) {
+			temperature = alphaInit
 			camera.Zoom = 1.0
 			for _, node := range graph.Nodes {
 				node.pos = rl.Vector2{
@@ -51,7 +57,9 @@ func main() {
 			}
 		}
 
-		graph.applyForce(rl.GetFrameTime())
+		graph.applyForce(rl.GetFrameTime(), temperature)
+		temperature += (alphaTarget - temperature) * alphaDecay * rl.GetFrameTime()
+
 		mousePos := rl.GetMousePosition()
 		mousePos.X = (mousePos.X-camera.Offset.X)/camera.Zoom + camera.Target.X
 		mousePos.Y = (mousePos.Y-camera.Offset.Y)/camera.Zoom + camera.Target.Y

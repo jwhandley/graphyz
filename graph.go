@@ -30,7 +30,7 @@ type Edge struct {
 	Value  float32 `json:"value"`
 }
 
-func (graph *Graph) applyForce(deltaTime float32) {
+func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	if gravity {
 		center := rl.Vector2{
 			X: screenWidth / 2,
