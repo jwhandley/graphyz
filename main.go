@@ -4,27 +4,47 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
+	"sync"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 const (
-	screenWidth  = 1200
-	screenHeight = 800
-	alphaTarget  = 1.0
-	alphaDecay   = 0.01
-	alphaInit    = float32(20.0)
-	barnesHut    = true
-	gravity      = true
+	screenWidth     = 1200
+	screenHeight    = 800
+	alphaTarget     = 1.0
+	alphaDecay      = 0.025
+	alphaInit       = float32(100.0)
+	barnesHut       = true
+	capacity        = 25
+	gravity         = true
+	theta           = 0.5
+	gravityStrength = 0.05
 )
 
+var mutex = &sync.Mutex{}
+
+func updatePhysics(graph *Graph) {
+	const deltaTime = time.Millisecond * 16
+	temperature := alphaInit
+	for {
+		temperature += (alphaTarget - temperature) * alphaDecay * 0.016
+		mutex.Lock()
+		graph.applyForce(0.016, temperature)
+		mutex.Unlock()
+		time.Sleep(deltaTime)
+	}
+}
+
 func main() {
-	graph, colorMap, err := ImportFromJson("assets/gove-rvs-materials/gove-rvs-materials/json/benchmark/block_2000.json")
+	path := os.Args[1]
+	graph, colorMap, err := ImportFromJson(path)
 	if err != nil {
 		panic(err)
 	}
-
-	temperature := alphaInit
+	go updatePhysics(graph)
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
 	rl.InitWindow(screenWidth, screenHeight, "graphyz")
@@ -47,7 +67,6 @@ func main() {
 		}
 
 		if rl.IsKeyPressed(rl.KeyR) {
-			temperature = alphaInit
 			camera.Zoom = 1.0
 			for _, node := range graph.Nodes {
 				node.pos = rl.Vector2{
@@ -57,9 +76,6 @@ func main() {
 			}
 		}
 
-		graph.applyForce(rl.GetFrameTime(), temperature)
-		temperature += (alphaTarget - temperature) * alphaDecay * rl.GetFrameTime()
-
 		mousePos := rl.GetMousePosition()
 		mousePos.X = (mousePos.X-camera.Offset.X)/camera.Zoom + camera.Target.X
 		mousePos.Y = (mousePos.Y-camera.Offset.Y)/camera.Zoom + camera.Target.Y
@@ -68,6 +84,7 @@ func main() {
 		rl.ClearBackground(rl.RayWhite)
 		rl.BeginMode2D(*camera)
 
+		mutex.Lock()
 		for _, edge := range graph.Edges {
 			sourcePos := graph.Nodes[edge.Source].pos
 			targetPos := graph.Nodes[edge.Target].pos
@@ -99,6 +116,7 @@ func main() {
 
 			}
 		}
+		mutex.Unlock()
 		rl.EndMode2D()
 		rl.DrawFPS(10, 10)
 		zoomMessage := fmt.Sprintf("Zoom: %.2f", camera.Zoom)

@@ -4,8 +4,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-const Capacity = 20
-
 type QuadTree struct {
 	Center    rl.Vector2
 	TotalMass float32
@@ -39,7 +37,7 @@ func (qt *QuadTree) Insert(node *Node) bool {
 		return false
 	}
 
-	if len(qt.Nodes) < Capacity {
+	if len(qt.Nodes) < capacity {
 		qt.Nodes = append(qt.Nodes, node)
 		return true
 	} else {

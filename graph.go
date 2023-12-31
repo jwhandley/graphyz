@@ -38,7 +38,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 		}
 		for _, node := range graph.Nodes {
 			delta := rl.Vector2Subtract(center, node.pos)
-			node.vel = rl.Vector2Scale(delta, 0.1)
+			node.vel = rl.Vector2Scale(delta, gravityStrength)
 		}
 	} else {
 		for _, node := range graph.Nodes {
@@ -54,7 +54,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 		}
 		qt.CalculateMasses()
 		for _, node := range graph.Nodes {
-			force := qt.CalculateForce(node, 0.5)
+			force := qt.CalculateForce(node, theta)
 			node.vel = rl.Vector2Add(node.vel, force)
 		}
 	} else {
