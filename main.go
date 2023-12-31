@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"math/rand"
@@ -13,19 +12,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"gopkg.in/yaml.v3"
 )
-
-// const (
-// 	config.ScreenWidth     = 1200
-// 	screenHeight    = 800
-// 	alphaTarget     = 1.0
-// 	alphaDecay      = 0.025
-// 	alphaInit       = float32(100.0)
-// 	barnesHut       = true
-// 	capacity        = 4
-// 	gravity         = true
-// 	theta           = 0.5
-// 	gravityStrength = 0.05
-// )
 
 type Config struct {
 	ScreenWidth     int32   `yaml:"ScreenWidth"`
@@ -43,7 +29,7 @@ type Config struct {
 var config Config
 
 func init() {
-	data, err := ioutil.ReadFile("./config.yaml")
+	data, err := os.ReadFile("./config.yaml")
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
