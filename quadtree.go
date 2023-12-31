@@ -73,6 +73,7 @@ func (qt *QuadTree) Subdivide() {
 			}
 		}
 	}
+	qt.Nodes = nil
 }
 
 func (qt *QuadTree) CalculateMasses() {
