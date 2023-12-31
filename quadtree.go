@@ -37,7 +37,7 @@ func (qt *QuadTree) Insert(node *Node) bool {
 		return false
 	}
 
-	if len(qt.Nodes) < capacity {
+	if len(qt.Nodes) < config.Capacity {
 		qt.Nodes = append(qt.Nodes, node)
 		return true
 	} else {
@@ -73,7 +73,6 @@ func (qt *QuadTree) Subdivide() {
 			}
 		}
 	}
-	qt.Nodes = nil
 }
 
 func (qt *QuadTree) CalculateMasses() {

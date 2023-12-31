@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math"
 	"math/rand"
 	"os"
@@ -9,28 +11,56 @@ import (
 	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"gopkg.in/yaml.v3"
 )
 
-const (
-	screenWidth     = 1200
-	screenHeight    = 800
-	alphaTarget     = 1.0
-	alphaDecay      = 0.025
-	alphaInit       = float32(100.0)
-	barnesHut       = true
-	capacity        = 25
-	gravity         = true
-	theta           = 0.5
-	gravityStrength = 0.05
-)
+// const (
+// 	config.ScreenWidth     = 1200
+// 	screenHeight    = 800
+// 	alphaTarget     = 1.0
+// 	alphaDecay      = 0.025
+// 	alphaInit       = float32(100.0)
+// 	barnesHut       = true
+// 	capacity        = 4
+// 	gravity         = true
+// 	theta           = 0.5
+// 	gravityStrength = 0.05
+// )
+
+type Config struct {
+	ScreenWidth     int32   `yaml:"ScreenWidth"`
+	ScreenHeight    int32   `yaml:"ScreenHeight"`
+	AlphaTarget     float32 `yaml:"AlphaTarget"`
+	AlphaDecay      float32 `yaml:"AlphaDecay"`
+	AlphaInit       float32 `yaml:"AlphaInit"`
+	BarnesHut       bool    `yaml:"BarnesHut"`
+	Capacity        int     `yaml:"Capacity"`
+	Gravity         bool    `yaml:"Gravity"`
+	Theta           float32 `yaml:"Theta"`
+	GravityStrength float32 `yaml:"Grav"`
+}
+
+var config Config
+
+func init() {
+	data, err := ioutil.ReadFile("./config.yaml")
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+}
 
 var mutex = &sync.Mutex{}
 
 func updatePhysics(graph *Graph) {
 	const deltaTime = time.Millisecond * 16
-	temperature := alphaInit
+	temperature := config.AlphaInit
 	for {
-		temperature += (alphaTarget - temperature) * alphaDecay * 0.016
+		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * 0.016
 		mutex.Lock()
 		graph.applyForce(0.016, temperature)
 		mutex.Unlock()
@@ -47,13 +77,13 @@ func main() {
 	go updatePhysics(graph)
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
-	rl.InitWindow(screenWidth, screenHeight, "graphyz")
+	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "graphyz")
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(60)
 
 	camera := new(rl.Camera2D)
-	camera.Target = rl.Vector2{X: screenWidth / 2, Y: screenHeight / 2}
-	camera.Offset = rl.Vector2{X: screenWidth / 2, Y: screenHeight / 2}
+	camera.Target = rl.Vector2{X: float32(config.ScreenWidth) / 2, Y: float32(config.ScreenHeight) / 2}
+	camera.Offset = rl.Vector2{X: float32(config.ScreenWidth) / 2, Y: float32(config.ScreenHeight) / 2}
 	camera.Rotation = 0.0
 	camera.Zoom = 1.0
 
@@ -70,8 +100,8 @@ func main() {
 			camera.Zoom = 1.0
 			for _, node := range graph.Nodes {
 				node.pos = rl.Vector2{
-					X: float32(rand.Intn(screenWidth)),
-					Y: float32(rand.Intn(screenHeight)),
+					X: float32(rand.Intn(int(config.ScreenWidth))),
+					Y: float32(rand.Intn(int(config.ScreenHeight))),
 				}
 			}
 		}
@@ -102,7 +132,7 @@ func main() {
 					anySelected = true
 				}
 				message := fmt.Sprintf("%s, Group: %d\nDegree: %.0f", node.Name, node.Group, node.degree)
-				rl.DrawText(message, int32(node.pos.X)+5, int32(node.pos.Y), 20, rl.Black)
+				rl.DrawText(message, int32(mousePos.X)+5, int32(mousePos.Y), 20, rl.Black)
 				rl.DrawCircleV(node.pos, radius, rl.NewColor(80, 80, 80, 150))
 			}
 
@@ -120,7 +150,7 @@ func main() {
 		rl.EndMode2D()
 		rl.DrawFPS(10, 10)
 		zoomMessage := fmt.Sprintf("Zoom: %.2f", camera.Zoom)
-		rl.DrawText(zoomMessage, screenWidth-110, 10, 20, rl.Black)
+		rl.DrawText(zoomMessage, config.ScreenWidth-110, 10, 20, rl.Black)
 		rl.EndDrawing()
 	}
 

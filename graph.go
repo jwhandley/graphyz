@@ -31,14 +31,14 @@ type Edge struct {
 }
 
 func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
-	if gravity {
+	if config.Gravity {
 		center := rl.Vector2{
-			X: screenWidth / 2,
-			Y: screenHeight / 2,
+			X: float32(config.ScreenWidth) / 2,
+			Y: float32(config.ScreenHeight) / 2,
 		}
 		for _, node := range graph.Nodes {
 			delta := rl.Vector2Subtract(center, node.pos)
-			node.vel = rl.Vector2Scale(delta, gravityStrength)
+			node.vel = rl.Vector2Scale(delta, config.GravityStrength)
 		}
 	} else {
 		for _, node := range graph.Nodes {
@@ -46,15 +46,15 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 		}
 	}
 
-	if barnesHut {
-		rect := Rect{-screenWidth, -screenHeight, 2 * screenWidth, 2 * screenHeight}
+	if config.BarnesHut {
+		rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
 		qt := NewQuadTree(rect)
 		for _, node := range graph.Nodes {
 			qt.Insert(node)
 		}
 		qt.CalculateMasses()
 		for _, node := range graph.Nodes {
-			force := qt.CalculateForce(node, theta)
+			force := qt.CalculateForce(node, config.Theta)
 			node.vel = rl.Vector2Add(node.vel, force)
 		}
 	} else {
@@ -97,7 +97,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	for _, node := range graph.Nodes {
 		node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
 		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
-		node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*screenWidth, -10*screenHeight), rl.NewVector2(10*screenWidth, 10*screenHeight))
+		node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
 	}
 }
 
@@ -114,8 +114,8 @@ func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 	rand := rand.New(rand.NewSource(123))
 	for _, node := range graph.Nodes {
 		node.pos = rl.Vector2{
-			X: float32(rand.Intn(screenWidth)),
-			Y: float32(rand.Intn(screenHeight)),
+			X: float32(rand.Intn(int(config.ScreenWidth))),
+			Y: float32(rand.Intn(int(config.ScreenHeight))),
 		}
 		if _, containsKey := colorMap[node.Group]; !containsKey {
 			r := uint8(rand.Intn(255))
