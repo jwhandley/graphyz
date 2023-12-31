@@ -8,6 +8,25 @@ Work in progress.
 
 ![](examples/graphyz-example.png)
 
+## Usage
+
+Launch Graphyz from the console:
+
+```console
+./graphyz "path/to/you/graph.json"
+```
+
+It currently only accepts graphs in json format with the fields "nodes" and "links". The "nodes" field is an array of nodes which may contain the "name" and "group" fields that determine what is displayed on hover and the color of the nodes, respectively. The "links" field must contain a "source" and a "target" field that have the indices of the respective nodes in the nodes array. Each link can optionally have a "value" field that acts as an edge weight.
+
+Here is a minimal example:
+
+```javascript
+{
+    "nodes": [{"name": "John Smith", "group": 0},{"name": "Jane Doe", "group": 1}],
+    "links": [{"source": 0, "target": 1, "value": 5}]
+}
+```
+
 ## References
 - Force-directed graph layouts: https://en.wikipedia.org/wiki/Force-directed_graph_drawing
 - d3-force: https://github.com/d3/d3-force
@@ -17,5 +36,5 @@ Work in progress.
 
 ## To-do
 - Use GPU instancing to speed up rendering for large graphs
-- Allow users to use their own graph data
 - Add support for additional graph serialization formats
+- Hot reloading of graphs
