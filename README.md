@@ -1,6 +1,6 @@
 # Graphyz
 
-A simple program for real-time force directed graph layout simulation written with Go and Raylib. Loosely based on the Fruchterman-Reingold algorithm, d3-force, and force atlas 2. Uses the Barnes-Hut algorithm to optimize force calculations.
+A simple program for interactive real-time force directed graph layout simulation written with Go and Raylib. Loosely based on the Fruchterman-Reingold algorithm, d3-force, and force atlas 2. Uses the Barnes-Hut algorithm to optimize force calculations.
 
 Work in progress.
 
