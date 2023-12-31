@@ -72,7 +72,7 @@ func main() {
 	path := os.Args[1]
 	graph, colorMap, err := ImportFromJson(path)
 	if err != nil {
-		panic(err)
+		log.Fatalf("error: %v", err)
 	}
 	go updatePhysics(graph)
 
