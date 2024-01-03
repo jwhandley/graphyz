@@ -109,9 +109,13 @@ func main() {
 		}
 
 		for _, node := range graph.Nodes {
-			dist := rl.Vector2Distance(mousePos, node.pos)
 			radius := float32(math.Max(math.Sqrt(float64(node.degree)), 2))
 			rl.DrawCircleV(node.pos, radius, colorMap[node.Group])
+		}
+
+		for _, node := range graph.Nodes {
+			dist := rl.Vector2Distance(mousePos, node.pos)
+			radius := float32(math.Max(math.Sqrt(float64(node.degree)), 2))
 			if dist < radius {
 				if rl.IsMouseButtonDown(0) && !anySelected {
 					node.isSelected = true
