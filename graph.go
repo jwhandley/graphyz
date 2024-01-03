@@ -110,10 +110,16 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	wg.Wait()
 
 	for _, node := range graph.Nodes {
-		node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
-		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
-		node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
+		wg.Add(1)
+		go func(node *Node) {
+			defer wg.Done()
+			node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
+			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
+			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
+		}(node)
+
 	}
+	wg.Wait()
 }
 
 func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
