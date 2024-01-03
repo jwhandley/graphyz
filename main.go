@@ -6,8 +6,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"sync"
-	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"gopkg.in/yaml.v3"
@@ -40,27 +38,13 @@ func init() {
 	}
 }
 
-var mutex = &sync.Mutex{}
-
-func updatePhysics(graph *Graph) {
-	const deltaTime = time.Millisecond * 16
-	temperature := config.AlphaInit
-	for {
-		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * 0.016
-		mutex.Lock()
-		graph.applyForce(0.016, temperature)
-		mutex.Unlock()
-		time.Sleep(deltaTime)
-	}
-}
-
 func main() {
 	path := os.Args[1]
 	graph, colorMap, err := ImportFromJson(path)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	go updatePhysics(graph)
+	temperature := config.AlphaInit
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
 	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "graphyz")
@@ -75,6 +59,8 @@ func main() {
 
 	anySelected := false
 	for !rl.WindowShouldClose() {
+		graph.applyForce(rl.GetFrameTime(), temperature)
+		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * rl.GetFrameTime()
 		camera.Zoom += rl.GetMouseWheelMove() * 0.05
 		if camera.Zoom > 3.0 {
 			camera.Zoom = 3.0
@@ -100,7 +86,6 @@ func main() {
 		rl.ClearBackground(rl.RayWhite)
 		rl.BeginMode2D(*camera)
 
-		mutex.Lock()
 		for _, edge := range graph.Edges {
 			sourcePos := graph.Nodes[edge.Source].pos
 			targetPos := graph.Nodes[edge.Target].pos
@@ -136,7 +121,7 @@ func main() {
 
 			}
 		}
-		mutex.Unlock()
+
 		rl.EndMode2D()
 		rl.DrawFPS(10, 10)
 		zoomMessage := fmt.Sprintf("Zoom: %.2f", camera.Zoom)

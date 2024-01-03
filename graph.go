@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"sync"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -49,14 +50,21 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	if config.BarnesHut {
 		rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
 		qt := NewQuadTree(rect)
+
 		for _, node := range graph.Nodes {
 			qt.Insert(node)
 		}
 		qt.CalculateMasses()
+		var wg sync.WaitGroup
 		for _, node := range graph.Nodes {
-			force := qt.CalculateForce(node, config.Theta)
-			node.vel = rl.Vector2Add(node.vel, force)
+			wg.Add(1)
+			go func(node *Node) {
+				defer wg.Done()
+				force := qt.CalculateForce(node, config.Theta)
+				node.vel = rl.Vector2Add(node.vel, force)
+			}(node)
 		}
+		wg.Wait()
 	} else {
 		for i, node := range graph.Nodes {
 
@@ -77,22 +85,29 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 
 		}
 	}
-
+	var wg sync.WaitGroup
 	for _, edge := range graph.Edges {
-		from := graph.Nodes[edge.Source]
-		to := graph.Nodes[edge.Target]
-		delta := rl.Vector2Subtract(from.pos, to.pos)
-		dist := rl.Vector2Length(delta)
+		wg.Add(1)
+		go func(edge *Edge) {
+			defer wg.Done()
+			from := graph.Nodes[edge.Source]
+			to := graph.Nodes[edge.Target]
+			delta := rl.Vector2Subtract(from.pos, to.pos)
+			dist := rl.Vector2Length(delta)
 
-		if dist < 1e-1 {
-			continue
-		}
-		s := float32(math.Min(float64(from.degree), float64(to.degree)))
-		var l float32 = 5.0
-		dv := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
-		from.vel = rl.Vector2Subtract(from.vel, dv)
-		to.vel = rl.Vector2Add(to.vel, dv)
+			if dist < 1e-1 {
+				return
+			}
+			s := float32(math.Min(float64(from.degree), float64(to.degree)))
+			var l float32 = 5.0
+			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
+			from.vel = rl.Vector2Subtract(from.vel, dv)
+			to.vel = rl.Vector2Add(to.vel, dv)
+
+		}(edge)
+
 	}
+	wg.Wait()
 
 	for _, node := range graph.Nodes {
 		node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
