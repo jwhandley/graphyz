@@ -69,6 +69,7 @@ func main() {
 		}
 
 		if rl.IsKeyPressed(rl.KeyR) {
+			temperature = config.AlphaInit
 			camera.Zoom = 1.0
 			for _, node := range graph.Nodes {
 				node.pos = rl.Vector2{

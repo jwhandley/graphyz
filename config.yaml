@@ -1,8 +1,8 @@
 ScreenWidth: 1200
 ScreenHeight: 800
 AlphaTarget: 1.0
-AlphaDecay: 0.025
-AlphaInit: 50.0
+AlphaDecay: 0.05
+AlphaInit: 100.0
 BarnesHut: true
 Capacity: 10
 Gravity: true

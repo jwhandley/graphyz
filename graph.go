@@ -23,6 +23,7 @@ type Node struct {
 	isSelected bool
 	pos        rl.Vector2
 	vel        rl.Vector2
+	acc        rl.Vector2
 }
 
 type Edge struct {
@@ -40,10 +41,12 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 		for _, node := range graph.Nodes {
 			delta := rl.Vector2Subtract(center, node.pos)
 			node.vel = rl.Vector2Scale(delta, config.GravityStrength)
+			node.acc = rl.Vector2Zero()
 		}
 	} else {
 		for _, node := range graph.Nodes {
 			node.vel = rl.Vector2Zero()
+			node.acc = rl.Vector2Zero()
 		}
 	}
 
@@ -60,8 +63,10 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 			wg.Add(1)
 			go func(node *Node) {
 				defer wg.Done()
+
 				force := qt.CalculateForce(node, config.Theta)
-				node.vel = rl.Vector2Add(node.vel, force)
+				node.acc = rl.Vector2Add(node.acc, force)
+
 			}(node)
 		}
 		wg.Wait()
@@ -79,8 +84,8 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 					continue
 				}
 				var scale float32 = node.degree * other.degree
-				dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
-				node.vel = rl.Vector2Add(node.vel, dv)
+				force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+				node.acc = rl.Vector2Add(node.acc, force)
 			}
 
 		}
@@ -100,9 +105,9 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 			}
 			s := float32(math.Min(float64(from.degree), float64(to.degree)))
 			var l float32 = 5.0
-			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
-			from.vel = rl.Vector2Subtract(from.vel, dv)
-			to.vel = rl.Vector2Add(to.vel, dv)
+			force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
+			from.acc = rl.Vector2Subtract(from.acc, force)
+			to.acc = rl.Vector2Add(to.acc, force)
 
 		}(edge)
 
@@ -113,6 +118,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 		wg.Add(1)
 		go func(node *Node) {
 			defer wg.Done()
+			node.vel = rl.Vector2Add(node.vel, node.acc)
 			node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
 			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
 			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
