@@ -10,7 +10,13 @@ Work in progress.
 
 ## Usage
 
-Launch Graphyz from the console:
+In order to compile you will need to have Go installed and to install the raylib bindings for Go (link in the references). You can then run
+
+```console
+go build
+```
+
+and then launch Graphyz from the console:
 
 ```console
 ./graphyz "path/to/you/graph.json"
