@@ -31,7 +31,7 @@ type Edge struct {
 	Value  float32 `json:"value"`
 }
 
-func (graph *Graph) applyForce(deltaTime float32, temperature float32, qt *QuadTree) {
+func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	if config.Gravity {
 		center := rl.Vector2{
 			X: float32(config.ScreenWidth) / 2,
@@ -50,14 +50,14 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32, qt *QuadT
 	}
 
 	if config.BarnesHut {
-		qt.Clear()
+		rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
+		qt := NewQuadTree(rect)
 
 		for _, node := range graph.Nodes {
 			qt.Insert(node)
 		}
 		qt.CalculateMasses()
 		for _, node := range graph.Nodes {
-
 			force := qt.CalculateForce(node, config.Theta)
 			node.acc = rl.Vector2Add(node.acc, force)
 		}
@@ -83,14 +83,13 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32, qt *QuadT
 	}
 
 	for _, edge := range graph.Edges {
-
 		from := graph.Nodes[edge.Source]
 		to := graph.Nodes[edge.Target]
 		delta := rl.Vector2Subtract(from.pos, to.pos)
 		dist := rl.Vector2Length(delta)
 
 		if dist < 1e-1 {
-			return
+			continue
 		}
 		s := float32(math.Min(float64(from.degree), float64(to.degree)))
 		var l float32 = 0
@@ -101,7 +100,6 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32, qt *QuadT
 	}
 
 	for _, node := range graph.Nodes {
-
 		node.vel = rl.Vector2Add(node.vel, node.acc)
 		node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
 		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))

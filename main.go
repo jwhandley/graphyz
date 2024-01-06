@@ -45,11 +45,9 @@ func init() {
 func updatePhysics(graph *Graph) {
 	targetTime := time.Millisecond * 16
 	var frameTime float32 = 0.016
-	rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
-	qt := NewQuadTree(rect)
 	for {
 		startTime := time.Now()
-		graph.applyForce(frameTime, temperature, qt)
+		graph.applyForce(frameTime, temperature)
 
 		elapsedTime := time.Since(startTime)
 
@@ -147,6 +145,7 @@ func main() {
 				if rl.IsMouseButtonDown(0) {
 					node.pos = mousePos
 				} else {
+					temperature = config.AlphaInit
 					node.isSelected = false
 					anySelected = false
 				}
