@@ -124,21 +124,19 @@ func main() {
 		}
 
 		for _, node := range graph.Nodes {
-			radius := float32(math.Max(math.Sqrt(float64(node.degree)), 2))
-			rl.DrawCircleV(node.pos, radius, colorMap[node.Group])
+			rl.DrawCircleV(node.pos, node.radius, colorMap[node.Group])
 		}
 
 		for _, node := range graph.Nodes {
 			dist := rl.Vector2Distance(mousePos, node.pos)
-			radius := float32(math.Max(math.Sqrt(float64(node.degree)), 2))
-			if dist < radius {
+			if dist < node.radius {
 				if rl.IsMouseButtonDown(0) && !anySelected {
 					node.isSelected = true
 					anySelected = true
 				}
 				message := fmt.Sprintf("%s, Group: %d\nDegree: %.0f", node.Name, node.Group, node.degree)
 				rl.DrawText(message, int32(mousePos.X)+5, int32(mousePos.Y), 20, rl.Black)
-				rl.DrawCircleV(node.pos, radius, rl.NewColor(80, 80, 80, 150))
+				rl.DrawCircleV(node.pos, node.radius, rl.NewColor(80, 80, 80, 150))
 			}
 
 			if node.isSelected {

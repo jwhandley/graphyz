@@ -20,6 +20,7 @@ type Node struct {
 	Group      int    `json:"group"`
 	degree     float32
 	isSelected bool
+	radius     float32
 	pos        rl.Vector2
 	vel        rl.Vector2
 	acc        rl.Vector2
@@ -139,6 +140,10 @@ func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 		graph.Nodes[edge.Source].degree += edge.Value
 		graph.Nodes[edge.Target].degree += edge.Value
 		graph.TotalDegree += edge.Value
+	}
+
+	for _, node := range graph.Nodes {
+		node.radius = float32(math.Max(math.Sqrt(float64(node.degree)), 2))
 	}
 
 	return &graph, colorMap, nil
