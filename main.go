@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"runtime/pprof"
+	"sync"
 	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -29,6 +30,7 @@ type Config struct {
 
 var config Config
 var temperature float32
+var mutex sync.Mutex
 
 func init() {
 	data, err := os.ReadFile("./config.yaml")
@@ -116,6 +118,7 @@ func main() {
 		rl.ClearBackground(rl.RayWhite)
 		rl.BeginMode2D(*camera)
 
+		mutex.Lock()
 		for _, edge := range graph.Edges {
 			sourcePos := graph.Nodes[edge.Source].pos
 			targetPos := graph.Nodes[edge.Target].pos
@@ -150,6 +153,7 @@ func main() {
 
 			}
 		}
+		mutex.Unlock()
 
 		rl.EndMode2D()
 		rl.DrawFPS(10, 10)
