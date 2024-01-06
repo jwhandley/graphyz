@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"gopkg.in/yaml.v3"
@@ -25,6 +26,7 @@ type Config struct {
 }
 
 var config Config
+var temperature float32
 
 func init() {
 	data, err := os.ReadFile("./config.yaml")
@@ -38,13 +40,30 @@ func init() {
 	}
 }
 
+func updatePhysics(graph *Graph) {
+	targetTime := time.Millisecond * 16
+	var frameTime float32 = 0
+	for {
+		startTime := time.Now()
+		graph.applyForce(frameTime, temperature)
+		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * frameTime
+		elapsedTime := time.Since(startTime)
+
+		if elapsedTime < targetTime {
+			time.Sleep(targetTime - elapsedTime)
+		}
+		frameTime = float32(time.Since(startTime).Seconds())
+	}
+}
+
 func main() {
 	path := os.Args[1]
 	graph, colorMap, err := ImportFromJson(path)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	temperature := config.AlphaInit
+	temperature = config.AlphaInit
+	go updatePhysics(graph)
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
 	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "graphyz")
@@ -59,8 +78,6 @@ func main() {
 
 	anySelected := false
 	for !rl.WindowShouldClose() {
-		graph.applyForce(rl.GetFrameTime(), temperature)
-		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * rl.GetFrameTime()
 		camera.Zoom += rl.GetMouseWheelMove() * 0.05
 		if camera.Zoom > 3.0 {
 			camera.Zoom = 3.0

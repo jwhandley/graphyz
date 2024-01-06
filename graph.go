@@ -104,7 +104,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 				return
 			}
 			s := float32(math.Min(float64(from.degree), float64(to.degree)))
-			var l float32 = 5.0
+			var l float32 = 0
 			force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
 			from.acc = rl.Vector2Subtract(from.acc, force)
 			to.acc = rl.Vector2Add(to.acc, force)
