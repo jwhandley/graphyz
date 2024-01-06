@@ -8,3 +8,4 @@ Capacity: 10
 Gravity: true
 Theta: 0.5
 GravityStrength: 0.1
+Debug: true

@@ -24,12 +24,21 @@ func (r *Rect) Contains(pos rl.Vector2) bool {
 func NewQuadTree(boundary Rect) *QuadTree {
 	qt := new(QuadTree)
 	qt.Region = boundary
-	qt.Nodes = make([]*Node, 0)
+	qt.Nodes = make([]*Node, 0, config.Capacity)
 	qt.Children = [4]*QuadTree{nil, nil, nil, nil}
 	qt.Center = rl.Vector2{X: 0, Y: 0}
 	qt.TotalMass = 0
 
 	return qt
+}
+
+func (qt *QuadTree) Clear() {
+	qt.Center = rl.Vector2Zero()
+	qt.Nodes = nil
+	for i := range qt.Children {
+		qt.Children[i] = nil
+	}
+	qt.TotalMass = 0
 }
 
 func (qt *QuadTree) Insert(node *Node) bool {

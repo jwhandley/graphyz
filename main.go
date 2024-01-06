@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"runtime/pprof"
 	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -23,6 +24,7 @@ type Config struct {
 	Gravity         bool    `yaml:"Gravity"`
 	Theta           float32 `yaml:"Theta"`
 	GravityStrength float32 `yaml:"Grav"`
+	Debug           bool    `yaml:"Debug"`
 }
 
 var config Config
@@ -42,21 +44,33 @@ func init() {
 
 func updatePhysics(graph *Graph) {
 	targetTime := time.Millisecond * 16
-	var frameTime float32 = 0
+	var frameTime float32 = 0.016
+	rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
+	qt := NewQuadTree(rect)
 	for {
 		startTime := time.Now()
-		graph.applyForce(frameTime, temperature)
-		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * frameTime
+		graph.applyForce(frameTime, temperature, qt)
+
 		elapsedTime := time.Since(startTime)
 
 		if elapsedTime < targetTime {
 			time.Sleep(targetTime - elapsedTime)
 		}
 		frameTime = float32(time.Since(startTime).Seconds())
+		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * frameTime
 	}
 }
 
 func main() {
+	if config.Debug {
+		f, err := os.Create("cpu.pprof")
+		if err != nil {
+			panic(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
 	path := os.Args[1]
 	graph, colorMap, err := ImportFromJson(path)
 	if err != nil {

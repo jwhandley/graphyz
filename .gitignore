@@ -1,2 +1,4 @@
 /assets
 graphyz
+*svg
+*.pprof

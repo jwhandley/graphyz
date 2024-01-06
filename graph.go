@@ -5,7 +5,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"sync"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -32,7 +31,7 @@ type Edge struct {
 	Value  float32 `json:"value"`
 }
 
-func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
+func (graph *Graph) applyForce(deltaTime float32, temperature float32, qt *QuadTree) {
 	if config.Gravity {
 		center := rl.Vector2{
 			X: float32(config.ScreenWidth) / 2,
@@ -51,25 +50,17 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	}
 
 	if config.BarnesHut {
-		rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
-		qt := NewQuadTree(rect)
+		qt.Clear()
 
 		for _, node := range graph.Nodes {
 			qt.Insert(node)
 		}
 		qt.CalculateMasses()
-		var wg sync.WaitGroup
 		for _, node := range graph.Nodes {
-			wg.Add(1)
-			go func(node *Node) {
-				defer wg.Done()
 
-				force := qt.CalculateForce(node, config.Theta)
-				node.acc = rl.Vector2Add(node.acc, force)
-
-			}(node)
+			force := qt.CalculateForce(node, config.Theta)
+			node.acc = rl.Vector2Add(node.acc, force)
 		}
-		wg.Wait()
 	} else {
 		for i, node := range graph.Nodes {
 
@@ -90,42 +81,33 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 
 		}
 	}
-	var wg sync.WaitGroup
+
 	for _, edge := range graph.Edges {
-		wg.Add(1)
-		go func(edge *Edge) {
-			defer wg.Done()
-			from := graph.Nodes[edge.Source]
-			to := graph.Nodes[edge.Target]
-			delta := rl.Vector2Subtract(from.pos, to.pos)
-			dist := rl.Vector2Length(delta)
 
-			if dist < 1e-1 {
-				return
-			}
-			s := float32(math.Min(float64(from.degree), float64(to.degree)))
-			var l float32 = 0
-			force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
-			from.acc = rl.Vector2Subtract(from.acc, force)
-			to.acc = rl.Vector2Add(to.acc, force)
+		from := graph.Nodes[edge.Source]
+		to := graph.Nodes[edge.Target]
+		delta := rl.Vector2Subtract(from.pos, to.pos)
+		dist := rl.Vector2Length(delta)
 
-		}(edge)
+		if dist < 1e-1 {
+			return
+		}
+		s := float32(math.Min(float64(from.degree), float64(to.degree)))
+		var l float32 = 0
+		force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*float32(edge.Value))
+		from.acc = rl.Vector2Subtract(from.acc, force)
+		to.acc = rl.Vector2Add(to.acc, force)
 
 	}
-	wg.Wait()
 
 	for _, node := range graph.Nodes {
-		wg.Add(1)
-		go func(node *Node) {
-			defer wg.Done()
-			node.vel = rl.Vector2Add(node.vel, node.acc)
-			node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
-			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
-			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
-		}(node)
+
+		node.vel = rl.Vector2Add(node.vel, node.acc)
+		node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
+		node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
+		node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
 
 	}
-	wg.Wait()
 }
 
 func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
