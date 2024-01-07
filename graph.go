@@ -17,6 +17,7 @@ type Graph struct {
 
 type Node struct {
 	Name       string `json:"name"`
+	Label      string `json:"label"`
 	Group      int    `json:"group"`
 	degree     float32
 	isSelected bool

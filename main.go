@@ -148,7 +148,13 @@ func main() {
 					node.isSelected = true
 					anySelected = true
 				}
-				message := fmt.Sprintf("%s, Group: %d\nDegree: %.0f", node.Name, node.Group, node.degree)
+				var name string
+				if len(node.Name) > 0 {
+					name = node.Name
+				} else if len(node.Label) > 0 {
+					name = node.Label
+				}
+				message := fmt.Sprintf("%s, Group: %d\nDegree: %.0f", name, node.Group, node.degree)
 				rl.DrawText(message, int32(mousePos.X)+5, int32(mousePos.Y), 20, rl.Black)
 				rl.DrawCircleV(node.pos, node.radius, rl.NewColor(80, 80, 80, 150))
 			}
