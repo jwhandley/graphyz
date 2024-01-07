@@ -33,6 +33,7 @@ var temperature float32
 var mutex sync.Mutex
 
 const EPSILON = 1e-2
+const RELEASE_DECAY = 60 * 10
 
 func init() {
 	data, err := os.ReadFile("./config.yaml")
@@ -148,8 +149,8 @@ func main() {
 				if rl.IsMouseButtonDown(0) {
 					node.pos = mousePos
 				} else {
-					temperature = config.AlphaInit
 					node.isSelected = false
+					node.released = RELEASE_DECAY
 					anySelected = false
 				}
 
