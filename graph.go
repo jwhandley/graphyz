@@ -20,7 +20,6 @@ type Node struct {
 	Group      int    `json:"group"`
 	degree     float32
 	isSelected bool
-	released   int
 	radius     float32
 	pos        rl.Vector2
 	vel        rl.Vector2
@@ -77,7 +76,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 					dist = EPSILON
 				}
 				var scale float32 = node.degree * other.degree
-				force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+				force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist*temperature)
 				node.acc = rl.Vector2Add(node.acc, force)
 			}
 
@@ -95,7 +94,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 		}
 		s := float32(math.Min(float64(from.radius), float64(to.radius)))
 		var l float32 = from.radius + to.radius
-		force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*edge.Value)
+		force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*edge.Value*temperature)
 		from.acc = rl.Vector2Subtract(from.acc, force)
 		to.acc = rl.Vector2Add(to.acc, force)
 
@@ -104,13 +103,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	for _, node := range graph.Nodes {
 		if !node.isSelected {
 			node.vel = rl.Vector2Add(node.vel, node.acc)
-			if node.released == 0 {
-				node.vel = rl.Vector2ClampValue(node.vel, -temperature, temperature)
-			} else {
-				node.released--
-				temp := config.AlphaInit - config.AlphaDecay*(config.AlphaInit-config.AlphaTarget)*float32(RELEASE_DECAY-node.released)/RELEASE_DECAY
-				node.vel = rl.Vector2ClampValue(node.vel, -temp, temp)
-			}
+			node.vel = rl.Vector2ClampValue(node.vel, -100, 100)
 			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
 			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
 		}

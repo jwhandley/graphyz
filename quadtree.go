@@ -117,7 +117,7 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 				dist = EPSILON
 			}
 			scale := node.degree * other.degree
-			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist*temperature)
 			totalForce = rl.Vector2Add(totalForce, dv)
 		}
 		return totalForce
@@ -132,7 +132,7 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 			}
 
 			scale := node.degree * qt.TotalMass
-			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist*temperature)
 			return dv
 		} else {
 			totalForce := rl.Vector2Zero()

@@ -33,7 +33,6 @@ var temperature float32
 var mutex sync.Mutex
 
 const EPSILON = 1e-2
-const RELEASE_DECAY = 60 * 10
 
 func init() {
 	data, err := os.ReadFile("./config.yaml")
@@ -47,20 +46,29 @@ func init() {
 	}
 }
 
-func updatePhysics(graph *Graph) {
+func updatePhysics(graph *Graph, numSteps int) {
 	targetTime := time.Millisecond * 16
-	var frameTime float32 = 0.016
+	var frameTime float32 = 0.016 / float32(numSteps)
+
 	for {
 		startTime := time.Now()
-		graph.applyForce(frameTime, temperature)
+		totalTime := time.Duration(0)
 
-		elapsedTime := time.Since(startTime)
+		for totalTime <= targetTime {
+			graph.applyForce(frameTime, temperature)
+			elapsedTime := time.Since(startTime)
+			totalTime += elapsedTime
 
-		if elapsedTime < targetTime {
-			time.Sleep(targetTime - elapsedTime)
+			// Update frameTime and temperature for the next iteration
+			frameTime = float32(elapsedTime.Seconds())
+			temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * frameTime
 		}
-		frameTime = float32(time.Since(startTime).Seconds())
-		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * frameTime
+
+		// Sleep for the remaining time of the target time, if any
+		remainingTime := targetTime - totalTime
+		if remainingTime > 0 {
+			time.Sleep(remainingTime)
+		}
 	}
 }
 
@@ -80,7 +88,7 @@ func main() {
 		log.Fatalf("error: %v", err)
 	}
 	temperature = config.AlphaInit
-	go updatePhysics(graph)
+	go updatePhysics(graph, 8)
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
 	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "graphyz")
@@ -150,7 +158,6 @@ func main() {
 					node.pos = mousePos
 				} else {
 					node.isSelected = false
-					node.released = RELEASE_DECAY
 					anySelected = false
 				}
 
