@@ -76,7 +76,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 					dist = EPSILON
 				}
 				var scale float32 = node.degree * other.degree
-				force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist*temperature)
+				force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
 				node.acc = rl.Vector2Add(node.acc, force)
 			}
 
@@ -94,7 +94,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 		}
 		s := float32(math.Min(float64(from.radius), float64(to.radius)))
 		var l float32 = from.radius + to.radius
-		force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*edge.Value*temperature)
+		force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*edge.Value)
 		from.acc = rl.Vector2Subtract(from.acc, force)
 		to.acc = rl.Vector2Add(to.acc, force)
 
@@ -103,6 +103,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	for _, node := range graph.Nodes {
 		if !node.isSelected {
 			node.vel = rl.Vector2Add(node.vel, node.acc)
+			node.vel = rl.Vector2Scale(node.vel, temperature)
 			node.vel = rl.Vector2ClampValue(node.vel, -100, 100)
 			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
 			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
