@@ -72,8 +72,8 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 
 				delta := rl.Vector2Subtract(node.pos, other.pos)
 				dist := rl.Vector2LengthSqr(delta)
-				if dist < 1e-2 {
-					continue
+				if dist < EPSILON {
+					dist = EPSILON
 				}
 				var scale float32 = node.degree * other.degree
 				force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
@@ -89,8 +89,8 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 		delta := rl.Vector2Subtract(from.pos, to.pos)
 		dist := rl.Vector2Length(delta)
 
-		if dist < 1e-1 {
-			continue
+		if dist < EPSILON {
+			dist = EPSILON
 		}
 		s := float32(math.Min(float64(from.radius), float64(to.radius)))
 		var l float32 = from.radius + to.radius

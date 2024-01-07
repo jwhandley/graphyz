@@ -32,6 +32,8 @@ var config Config
 var temperature float32
 var mutex sync.Mutex
 
+const EPSILON = 1e-2
+
 func init() {
 	data, err := os.ReadFile("./config.yaml")
 	if err != nil {
