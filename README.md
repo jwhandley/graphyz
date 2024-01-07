@@ -6,7 +6,7 @@ Work in progress.
 
 ## Example
 
-![](examples/graphyz-example.png)
+![](examples/example.png)
 
 ## Usage
 
