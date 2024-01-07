@@ -159,6 +159,11 @@ func main() {
 		rl.DrawFPS(10, 10)
 		zoomMessage := fmt.Sprintf("Zoom: %.2f", camera.Zoom)
 		rl.DrawText(zoomMessage, config.ScreenWidth-110, 10, 20, rl.Black)
+
+		numNodes := fmt.Sprintf("Number of nodes: %d", len(graph.Nodes))
+		rl.DrawText(numNodes, 10, config.ScreenHeight-45, 20, rl.Black)
+		numEdges := fmt.Sprintf("Number of edges: %d", len(graph.Edges))
+		rl.DrawText(numEdges, 10, config.ScreenHeight-25, 20, rl.Black)
 		rl.EndDrawing()
 	}
 
