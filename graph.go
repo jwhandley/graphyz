@@ -103,7 +103,7 @@ func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
 	for _, node := range graph.Nodes {
 		if !node.isSelected {
 			node.vel = rl.Vector2Add(node.vel, node.acc)
-			node.vel = rl.Vector2Clamp(node.vel, rl.NewVector2(-temperature, -temperature), rl.NewVector2(temperature, temperature))
+			node.vel = rl.Vector2ClampValue(node.vel, -temperature, temperature)
 			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
 			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
 		}
