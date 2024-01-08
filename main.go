@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime/pprof"
@@ -116,12 +115,7 @@ func main() {
 		if rl.IsKeyPressed(rl.KeyR) {
 			temperature = config.AlphaInit
 			camera.Zoom = 1.0
-			for _, node := range graph.Nodes {
-				node.pos = rl.Vector2{
-					X: float32(rand.Intn(int(config.ScreenWidth))),
-					Y: float32(rand.Intn(int(config.ScreenHeight))),
-				}
-			}
+			graph.resetPosition()
 		}
 
 		mousePos := rl.GetMousePosition()
