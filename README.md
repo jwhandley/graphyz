@@ -6,7 +6,7 @@ Work in progress.
 
 ## Example
 
-![](examples/example.png)
+![](examples/example2.png)
 
 ## Usage
 
