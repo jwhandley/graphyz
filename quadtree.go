@@ -111,29 +111,17 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 	if qt.Children[0] == nil {
 		totalForce := rl.Vector2Zero()
 		for _, other := range qt.Nodes {
-			delta := rl.Vector2Subtract(node.pos, other.pos)
-			dist := rl.Vector2LengthSqr(delta)
-			if dist < EPSILON {
-				dist = EPSILON
-			}
-			scale := node.degree * other.degree
-			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
-			totalForce = rl.Vector2Add(totalForce, dv)
+			force := calculateRepulsionForce(node, other)
+			totalForce = rl.Vector2Add(totalForce, force)
+
 		}
 		return totalForce
 	} else {
 		d := rl.Vector2Distance(node.pos, qt.Center)
 		s := qt.Region.Width
 		if (s / d) < theta {
-			delta := rl.Vector2Subtract(node.pos, qt.Center)
-			dist := rl.Vector2LengthSqr(delta)
-			if dist < EPSILON {
-				dist = EPSILON
-			}
-
-			scale := node.degree * qt.TotalMass
-			dv := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
-			return dv
+			force := calculateRepulsionForce(node, qt)
+			return force
 		} else {
 			totalForce := rl.Vector2Zero()
 			for _, child := range qt.Children {
@@ -144,4 +132,12 @@ func (qt *QuadTree) CalculateForce(node *Node, theta float32) rl.Vector2 {
 			return totalForce
 		}
 	}
+}
+
+func (qt *QuadTree) size() float32 {
+	return qt.TotalMass
+}
+
+func (qt *QuadTree) position() rl.Vector2 {
+	return qt.Center
 }

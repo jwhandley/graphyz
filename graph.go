@@ -6,6 +6,11 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type Body interface {
+	size() float32
+	position() rl.Vector2
+}
+
 type Graph struct {
 	Nodes       []*Node `json:"nodes"`
 	Edges       []*Edge `json:"links"`
@@ -80,15 +85,7 @@ func (graph *Graph) attractionForce() {
 	for _, edge := range graph.Edges {
 		from := graph.Nodes[edge.Source]
 		to := graph.Nodes[edge.Target]
-		delta := rl.Vector2Subtract(from.pos, to.pos)
-		dist := rl.Vector2Length(delta)
-
-		if dist < EPSILON {
-			dist = EPSILON
-		}
-		s := float32(math.Min(float64(from.radius), float64(to.radius)))
-		var l float32 = from.radius + to.radius
-		force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*edge.Value)
+		force := calculateAttractionForce(from, to, edge.Value)
 		from.acc = rl.Vector2Subtract(from.acc, force)
 		to.acc = rl.Vector2Add(to.acc, force)
 
@@ -117,16 +114,40 @@ func (graph *Graph) repulsionNaive() {
 				continue
 			}
 
-			delta := rl.Vector2Subtract(node.pos, other.pos)
-			dist := rl.Vector2LengthSqr(delta)
-			if dist < EPSILON {
-				dist = EPSILON
-			}
-			var scale float32 = node.degree * other.degree
-			force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+			force := calculateRepulsionForce(node, other)
 			node.acc = rl.Vector2Add(node.acc, force)
 		}
 
 	}
+}
 
+func (node *Node) size() float32 {
+	return node.degree
+}
+
+func (node *Node) position() rl.Vector2 {
+	return node.pos
+}
+
+func calculateRepulsionForce(b1 Body, b2 Body) rl.Vector2 {
+	delta := rl.Vector2Subtract(b1.position(), b2.position())
+	dist := rl.Vector2LengthSqr(delta)
+	if dist < EPSILON {
+		dist = EPSILON
+	}
+	scale := b1.size() * b2.size()
+	force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+	return force
+}
+
+func calculateAttractionForce(from *Node, to *Node, weight float32) rl.Vector2 {
+	delta := rl.Vector2Subtract(from.pos, to.pos)
+	dist := rl.Vector2Length(delta)
+
+	if dist < EPSILON {
+		dist = EPSILON
+	}
+	s := float32(math.Min(float64(from.radius), float64(to.radius)))
+	var l float32 = from.radius + to.radius
+	return rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*weight)
 }
