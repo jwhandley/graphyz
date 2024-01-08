@@ -48,7 +48,7 @@ func (graph *Graph) resetPosition() {
 	}
 }
 
-func (graph *Graph) ApplyForce(deltaTime float32) {
+func (graph *Graph) ApplyForce(deltaTime float32, qt *QuadTree) {
 	graph.resetAcceleration()
 	if config.Gravity {
 		graph.gravityForce()
@@ -57,7 +57,7 @@ func (graph *Graph) ApplyForce(deltaTime float32) {
 	graph.attractionForce()
 
 	if config.BarnesHut {
-		graph.repulsionBarnesHut()
+		graph.repulsionBarnesHut(qt)
 	} else {
 		graph.repulsionNaive()
 	}
@@ -105,9 +105,8 @@ func (graph *Graph) attractionForce() {
 	}
 }
 
-func (graph *Graph) repulsionBarnesHut() {
-	rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
-	qt := NewQuadTree(rect)
+func (graph *Graph) repulsionBarnesHut(qt *QuadTree) {
+	qt.Clear()
 
 	for _, node := range graph.Nodes {
 		qt.Insert(node)

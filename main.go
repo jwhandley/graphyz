@@ -50,13 +50,14 @@ func init() {
 func updatePhysics(graph *Graph, numSteps int) {
 	targetTime := time.Millisecond * 16
 	var frameTime float32 = 0.016 / float32(numSteps)
-
+	rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
+	qt := NewQuadTree(rect)
 	for {
 		startTime := time.Now()
 		totalTime := time.Duration(0)
 
 		for totalTime <= targetTime {
-			graph.ApplyForce(frameTime)
+			graph.ApplyForce(frameTime, qt)
 			elapsedTime := time.Since(startTime)
 			totalTime += elapsedTime
 
