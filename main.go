@@ -6,7 +6,9 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"runtime/pprof"
+	"strings"
 	"sync"
 	"time"
 
@@ -91,7 +93,8 @@ func main() {
 	go updatePhysics(graph, 8)
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
-	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "graphyz")
+	windowTitle := fmt.Sprintf("graphyz - %s", strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)))
+	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, windowTitle)
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(60)
 

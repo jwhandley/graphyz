@@ -40,13 +40,14 @@ func (graph *Graph) ApplyForce(deltaTime float32) {
 		graph.gravityForce()
 	}
 
+	graph.attractionForce()
+
 	if config.BarnesHut {
 		graph.repulsionBarnesHut()
 	} else {
 		graph.repulsionNaive()
 	}
 
-	graph.attractionForce()
 	graph.updatePositions(deltaTime)
 }
 
