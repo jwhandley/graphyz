@@ -18,12 +18,16 @@ func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 	}
 
 	json.Unmarshal(file, &graph)
-
+	var initialRadius float32 = 10.0
+	initialAngle := float64(rl.Pi) * (3 - math.Sqrt(5))
 	rand := rand.New(rand.NewSource(123))
-	for _, node := range graph.Nodes {
+	for i, node := range graph.Nodes {
+		radius := initialRadius * float32(math.Sqrt(0.5+float64(i)))
+		angle := float64(i) * initialAngle
+
 		node.pos = rl.Vector2{
-			X: float32(rand.Intn(int(config.ScreenWidth))),
-			Y: float32(rand.Intn(int(config.ScreenHeight))),
+			X: radius*float32(math.Cos(angle)) + float32(config.ScreenWidth)/2,
+			Y: radius*float32(math.Sin(angle)) + float32(config.ScreenHeight)/2,
 		}
 		if _, containsKey := colorMap[node.Group]; !containsKey {
 			r := uint8(rand.Intn(255))
@@ -39,7 +43,6 @@ func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 
 		graph.Nodes[edge.Source].degree += edge.Value
 		graph.Nodes[edge.Target].degree += edge.Value
-		graph.TotalDegree += edge.Value
 	}
 
 	for _, node := range graph.Nodes {

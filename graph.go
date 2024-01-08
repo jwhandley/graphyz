@@ -12,9 +12,8 @@ type Body interface {
 }
 
 type Graph struct {
-	Nodes       []*Node `json:"nodes"`
-	Edges       []*Edge `json:"links"`
-	TotalDegree float32
+	Nodes []*Node `json:"nodes"`
+	Edges []*Edge `json:"links"`
 }
 
 type Node struct {
