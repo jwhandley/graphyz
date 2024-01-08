@@ -55,7 +55,7 @@ func updatePhysics(graph *Graph, numSteps int) {
 		totalTime := time.Duration(0)
 
 		for totalTime <= targetTime {
-			graph.applyForce(frameTime, temperature)
+			graph.ApplyForce(frameTime)
 			elapsedTime := time.Since(startTime)
 			totalTime += elapsedTime
 

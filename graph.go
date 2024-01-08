@@ -33,83 +33,20 @@ type Edge struct {
 	Value  float32 `json:"value"`
 }
 
-func (graph *Graph) applyForce(deltaTime float32, temperature float32) {
+func (graph *Graph) ApplyForce(deltaTime float32) {
+	graph.resetVelocity()
 	if config.Gravity {
-		center := rl.Vector2{
-			X: float32(config.ScreenWidth) / 2,
-			Y: float32(config.ScreenHeight) / 2,
-		}
-		for _, node := range graph.Nodes {
-			delta := rl.Vector2Subtract(center, node.pos)
-			node.vel = rl.Vector2Scale(delta, config.GravityStrength)
-			node.acc = rl.Vector2Zero()
-		}
-	} else {
-		for _, node := range graph.Nodes {
-			node.vel = rl.Vector2Zero()
-			node.acc = rl.Vector2Zero()
-		}
+		graph.gravityForce()
 	}
 
 	if config.BarnesHut {
-		rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
-		qt := NewQuadTree(rect)
-
-		for _, node := range graph.Nodes {
-			qt.Insert(node)
-		}
-		qt.CalculateMasses()
-		for _, node := range graph.Nodes {
-			force := qt.CalculateForce(node, config.Theta)
-			node.acc = rl.Vector2Add(node.acc, force)
-		}
+		graph.repulsionBarnesHut()
 	} else {
-		for i, node := range graph.Nodes {
-
-			for j, other := range graph.Nodes {
-				if i == j {
-					continue
-				}
-
-				delta := rl.Vector2Subtract(node.pos, other.pos)
-				dist := rl.Vector2LengthSqr(delta)
-				if dist < EPSILON {
-					dist = EPSILON
-				}
-				var scale float32 = node.degree * other.degree
-				force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
-				node.acc = rl.Vector2Add(node.acc, force)
-			}
-
-		}
+		graph.repulsionNaive()
 	}
 
-	for _, edge := range graph.Edges {
-		from := graph.Nodes[edge.Source]
-		to := graph.Nodes[edge.Target]
-		delta := rl.Vector2Subtract(from.pos, to.pos)
-		dist := rl.Vector2Length(delta)
-
-		if dist < EPSILON {
-			dist = EPSILON
-		}
-		s := float32(math.Min(float64(from.radius), float64(to.radius)))
-		var l float32 = from.radius + to.radius
-		force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*edge.Value)
-		from.acc = rl.Vector2Subtract(from.acc, force)
-		to.acc = rl.Vector2Add(to.acc, force)
-
-	}
-
-	for _, node := range graph.Nodes {
-		if !node.isSelected {
-			node.vel = rl.Vector2Add(node.vel, node.acc)
-			node.vel = rl.Vector2Scale(node.vel, temperature)
-			node.vel = rl.Vector2ClampValue(node.vel, -100, 100)
-			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
-			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
-		}
-	}
+	graph.attractionForce()
+	graph.updatePositions(deltaTime)
 }
 
 func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
@@ -150,4 +87,89 @@ func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 	}
 
 	return &graph, colorMap, nil
+}
+
+func (graph *Graph) updatePositions(deltaTime float32) {
+	for _, node := range graph.Nodes {
+		if !node.isSelected {
+			node.vel = rl.Vector2Add(node.vel, node.acc)
+			node.vel = rl.Vector2Scale(node.vel, temperature)
+			node.vel = rl.Vector2ClampValue(node.vel, -100, 100)
+			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
+			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
+		}
+	}
+}
+
+func (graph *Graph) resetVelocity() {
+	for _, node := range graph.Nodes {
+		node.vel = rl.Vector2Zero()
+		node.acc = rl.Vector2Zero()
+	}
+}
+
+func (graph *Graph) gravityForce() {
+	center := rl.Vector2{
+		X: float32(config.ScreenWidth) / 2,
+		Y: float32(config.ScreenHeight) / 2,
+	}
+	for _, node := range graph.Nodes {
+		delta := rl.Vector2Subtract(center, node.pos)
+		node.acc = rl.Vector2Scale(delta, config.GravityStrength)
+	}
+}
+
+func (graph *Graph) attractionForce() {
+	for _, edge := range graph.Edges {
+		from := graph.Nodes[edge.Source]
+		to := graph.Nodes[edge.Target]
+		delta := rl.Vector2Subtract(from.pos, to.pos)
+		dist := rl.Vector2Length(delta)
+
+		if dist < EPSILON {
+			dist = EPSILON
+		}
+		s := float32(math.Min(float64(from.radius), float64(to.radius)))
+		var l float32 = from.radius + to.radius
+		force := rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*edge.Value)
+		from.acc = rl.Vector2Subtract(from.acc, force)
+		to.acc = rl.Vector2Add(to.acc, force)
+
+	}
+}
+
+func (graph *Graph) repulsionBarnesHut() {
+	rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
+	qt := NewQuadTree(rect)
+
+	for _, node := range graph.Nodes {
+		qt.Insert(node)
+	}
+	qt.CalculateMasses()
+	for _, node := range graph.Nodes {
+		force := qt.CalculateForce(node, config.Theta)
+		node.acc = rl.Vector2Add(node.acc, force)
+	}
+}
+
+func (graph *Graph) repulsionNaive() {
+	for i, node := range graph.Nodes {
+
+		for j, other := range graph.Nodes {
+			if i == j {
+				continue
+			}
+
+			delta := rl.Vector2Subtract(node.pos, other.pos)
+			dist := rl.Vector2LengthSqr(delta)
+			if dist < EPSILON {
+				dist = EPSILON
+			}
+			var scale float32 = node.degree * other.degree
+			force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
+			node.acc = rl.Vector2Add(node.acc, force)
+		}
+
+	}
+
 }
