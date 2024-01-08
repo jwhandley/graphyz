@@ -6,6 +6,6 @@ AlphaInit: 1.0
 BarnesHut: true
 Capacity: 10
 Gravity: true
-Theta: 0.5
+Theta: 0.75
 GravityStrength: 0.1
 Debug: true

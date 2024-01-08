@@ -35,7 +35,7 @@ type Edge struct {
 }
 
 func (graph *Graph) ApplyForce(deltaTime float32) {
-	graph.resetVelocity()
+	graph.resetAcceleration()
 	if config.Gravity {
 		graph.gravityForce()
 	}
@@ -63,9 +63,8 @@ func (graph *Graph) updatePositions(deltaTime float32) {
 	}
 }
 
-func (graph *Graph) resetVelocity() {
+func (graph *Graph) resetAcceleration() {
 	for _, node := range graph.Nodes {
-		node.vel = rl.Vector2Zero()
 		node.acc = rl.Vector2Zero()
 	}
 }
