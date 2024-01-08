@@ -104,6 +104,7 @@ func main() {
 	camera.Zoom = 1.0
 
 	anySelected := false
+	panMode := false
 	for !rl.WindowShouldClose() {
 		camera.Zoom += rl.GetMouseWheelMove() * 0.05
 		if camera.Zoom > 3.0 {
@@ -116,6 +117,18 @@ func main() {
 			temperature = config.AlphaInit
 			camera.Zoom = 1.0
 			graph.resetPosition()
+		}
+
+		if rl.IsMouseButtonDown(rl.MouseButtonLeft) && !anySelected {
+			panMode = true
+		}
+
+		if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
+			panMode = false
+		}
+
+		if panMode {
+			camera.Offset = rl.Vector2Add(camera.Offset, rl.GetMouseDelta())
 		}
 
 		mousePos := rl.GetMousePosition()
@@ -141,9 +154,10 @@ func main() {
 		for _, node := range graph.Nodes {
 			dist := rl.Vector2Distance(mousePos, node.pos)
 			if dist < node.radius {
-				if rl.IsMouseButtonDown(0) && !anySelected {
+				if rl.IsMouseButtonDown(rl.MouseButtonLeft) && !anySelected {
 					node.isSelected = true
 					anySelected = true
+					panMode = false
 				}
 				var name string
 				if len(node.Name) > 0 {
@@ -157,7 +171,7 @@ func main() {
 			}
 
 			if node.isSelected {
-				if rl.IsMouseButtonDown(0) {
+				if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
 					node.pos = mousePos
 				} else {
 					node.isSelected = false
@@ -171,7 +185,7 @@ func main() {
 		rl.EndMode2D()
 		rl.DrawFPS(10, 10)
 		zoomMessage := fmt.Sprintf("Zoom: %.2f", camera.Zoom)
-		rl.DrawText(zoomMessage, config.ScreenWidth-110, 10, 20, rl.Black)
+		rl.DrawText(zoomMessage, config.ScreenWidth-105, 10, 20, rl.Black)
 
 		numNodes := fmt.Sprintf("Number of nodes: %d", len(graph.Nodes))
 		rl.DrawText(numNodes, 10, config.ScreenHeight-45, 20, rl.Black)
