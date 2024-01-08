@@ -3,11 +3,34 @@ package main
 import (
 	"encoding/json"
 	"math"
-	"math/rand"
 	"os"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+// Matplotlib tab20c colormap
+var Colors = [20]rl.Color{
+	{49, 130, 189, 255},
+	{107, 174, 214, 255},
+	{158, 202, 225, 255},
+	{198, 219, 239, 255},
+	{230, 85, 13, 255},
+	{253, 141, 60, 255},
+	{253, 174, 107, 255},
+	{253, 208, 162, 255},
+	{49, 163, 84, 255},
+	{116, 196, 118, 255},
+	{161, 217, 155, 255},
+	{199, 233, 192, 255},
+	{117, 107, 177, 255},
+	{158, 154, 200, 255},
+	{188, 189, 220, 255},
+	{218, 218, 235, 255},
+	{99, 99, 99, 255},
+	{150, 150, 150, 255},
+	{189, 189, 189, 255},
+	{217, 217, 217, 255},
+}
 
 func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 	var graph Graph
@@ -20,7 +43,6 @@ func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 	json.Unmarshal(file, &graph)
 	var initialRadius float32 = 10.0
 	initialAngle := float64(rl.Pi) * (3 - math.Sqrt(5))
-	rand := rand.New(rand.NewSource(123))
 	for i, node := range graph.Nodes {
 		radius := initialRadius * float32(math.Sqrt(0.5+float64(i)))
 		angle := float64(i) * initialAngle
@@ -30,10 +52,7 @@ func ImportFromJson(filepath string) (*Graph, map[int]rl.Color, error) {
 			Y: radius*float32(math.Sin(angle)) + float32(config.ScreenHeight)/2,
 		}
 		if _, containsKey := colorMap[node.Group]; !containsKey {
-			r := uint8(rand.Intn(255))
-			g := uint8(rand.Intn(255))
-			b := uint8(rand.Intn(255))
-			colorMap[node.Group] = rl.NewColor(r, g, b, 255)
+			colorMap[node.Group] = Colors[node.Group%len(Colors)]
 		}
 	}
 	for _, edge := range graph.Edges {
