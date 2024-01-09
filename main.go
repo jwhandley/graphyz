@@ -48,7 +48,7 @@ func init() {
 }
 
 func updatePhysics(graph *Graph) {
-	targetTime := time.Millisecond * 16
+	//targetTime := time.Millisecond * 16
 	var frameTime float32 = 0.016
 	rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
 	qt := NewQuadTree(rect)
@@ -56,11 +56,6 @@ func updatePhysics(graph *Graph) {
 		startTime := time.Now()
 
 		graph.ApplyForce(frameTime, qt)
-
-		if time.Since(startTime) < targetTime {
-			time.Sleep(targetTime - time.Since(startTime))
-		}
-
 		frameTime = float32(time.Since(startTime).Seconds())
 		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * frameTime
 	}
