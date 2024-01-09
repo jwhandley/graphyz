@@ -69,7 +69,7 @@ func (graph *Graph) updatePositions(deltaTime float32) {
 	for _, node := range graph.Nodes {
 		if !node.isSelected {
 			node.vel = rl.Vector2Add(node.vel, node.acc)
-			node.vel = rl.Vector2Scale(node.vel, temperature)
+			node.vel = rl.Vector2Scale(node.vel, 1-config.VelocityDecay)
 			node.vel = rl.Vector2ClampValue(node.vel, -100, 100)
 			node.pos = rl.Vector2Add(node.pos, rl.Vector2Scale(node.vel, deltaTime))
 			node.pos = rl.Vector2Clamp(node.pos, rl.NewVector2(-10*float32(config.ScreenWidth), -10*float32(config.ScreenHeight)), rl.NewVector2(10*float32(config.ScreenWidth), 10*float32(config.ScreenHeight)))
@@ -90,7 +90,7 @@ func (graph *Graph) gravityForce() {
 	}
 	for _, node := range graph.Nodes {
 		delta := rl.Vector2Subtract(center, node.pos)
-		force := rl.Vector2Scale(delta, config.GravityStrength*node.size())
+		force := rl.Vector2Scale(delta, config.GravityStrength*node.size()*temperature)
 		node.acc = rl.Vector2Add(node.acc, force)
 	}
 }
@@ -148,7 +148,7 @@ func calculateRepulsionForce(b1 Body, b2 Body) rl.Vector2 {
 	if dist*dist < b1.size()*b2.size() {
 		dist = b1.size() * b2.size()
 	}
-	scale := b1.size() * b2.size()
+	scale := b1.size() * b2.size() * temperature
 	force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
 	return force
 }
@@ -162,5 +162,5 @@ func calculateAttractionForce(from *Node, to *Node, weight float32) rl.Vector2 {
 	}
 	s := float32(math.Min(float64(from.radius), float64(to.radius)))
 	var l float32 = from.radius + to.radius
-	return rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*weight)
+	return rl.Vector2Scale(rl.Vector2Normalize(delta), (dist-l)/s*weight*temperature)
 }

@@ -21,6 +21,7 @@ type Config struct {
 	AlphaTarget     float32 `yaml:"AlphaTarget"`
 	AlphaDecay      float32 `yaml:"AlphaDecay"`
 	AlphaInit       float32 `yaml:"AlphaInit"`
+	VelocityDecay   float32 `yaml:"VelocityDecay"`
 	BarnesHut       bool    `yaml:"BarnesHut"`
 	Capacity        int     `yaml:"Capacity"`
 	Gravity         bool    `yaml:"Gravity"`
