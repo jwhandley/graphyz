@@ -47,30 +47,22 @@ func init() {
 	}
 }
 
-func updatePhysics(graph *Graph, numSteps int) {
+func updatePhysics(graph *Graph) {
 	targetTime := time.Millisecond * 16
-	var frameTime float32 = 0.016 / float32(numSteps)
+	var frameTime float32 = 0.016
 	rect := Rect{-float32(config.ScreenWidth), -float32(config.ScreenHeight), 2 * float32(config.ScreenWidth), 2 * float32(config.ScreenHeight)}
 	qt := NewQuadTree(rect)
 	for {
 		startTime := time.Now()
-		totalTime := time.Duration(0)
 
-		for totalTime <= targetTime {
-			graph.ApplyForce(frameTime, qt)
-			elapsedTime := time.Since(startTime)
-			totalTime += elapsedTime
+		graph.ApplyForce(frameTime, qt)
 
-			// Update frameTime and temperature for the next iteration
-			frameTime = float32(elapsedTime.Seconds())
-			temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * frameTime
+		if time.Since(startTime) < targetTime {
+			time.Sleep(targetTime - time.Since(startTime))
 		}
 
-		// Sleep for the remaining time of the target time, if any
-		remainingTime := targetTime - totalTime
-		if remainingTime > 0 {
-			time.Sleep(remainingTime)
-		}
+		frameTime = float32(time.Since(startTime).Seconds())
+		temperature += (config.AlphaTarget - temperature) * config.AlphaDecay * frameTime
 	}
 }
 
@@ -90,7 +82,7 @@ func main() {
 		log.Fatalf("error: %v", err)
 	}
 	temperature = config.AlphaInit
-	go updatePhysics(graph, 8)
+	go updatePhysics(graph)
 
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
 	windowTitle := fmt.Sprintf("graphyz - %s", strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)))

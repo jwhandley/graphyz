@@ -5,7 +5,7 @@ AlphaDecay: 0.02
 AlphaInit: 1.0
 BarnesHut: true
 Capacity: 10
-Gravity: true
+Gravity: false
 Theta: 0.75
-GravityStrength: 0.1
+GravityStrength: 0.5
 Debug: true

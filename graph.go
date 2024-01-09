@@ -90,7 +90,8 @@ func (graph *Graph) gravityForce() {
 	}
 	for _, node := range graph.Nodes {
 		delta := rl.Vector2Subtract(center, node.pos)
-		node.acc = rl.Vector2Scale(delta, config.GravityStrength)
+		force := rl.Vector2Scale(delta, config.GravityStrength*node.size())
+		node.acc = rl.Vector2Add(node.acc, force)
 	}
 }
 
@@ -144,8 +145,8 @@ func (node *Node) position() rl.Vector2 {
 func calculateRepulsionForce(b1 Body, b2 Body) rl.Vector2 {
 	delta := rl.Vector2Subtract(b1.position(), b2.position())
 	dist := rl.Vector2LengthSqr(delta)
-	if dist < EPSILON {
-		dist = EPSILON
+	if dist*dist < b1.size()*b2.size() {
+		dist = b1.size() * b2.size()
 	}
 	scale := b1.size() * b2.size()
 	force := rl.Vector2Scale(rl.Vector2Normalize(delta), 10*scale/dist)
